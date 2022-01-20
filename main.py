@@ -3,6 +3,23 @@ import shlex
 from io import StringIO
 import json
 from ftplib import FTP
+import argparse
+
+def init_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="""
+                                    Provisioning config file to app service.                                    
+                                    Take zip file and upload on app service on defined path.
+                                """)
+    azure = parser.add_argument_group("azure options")
+    azure.add_argument("--resource-group", '-g', dest="group")
+    azure.add_argument("--subscription", '-s', dest="subscription")
+    
+    provision = parser.add_argument_group("provisioning options")
+    provision.add_argument("--zip", "-z", dest="zip")
+    provision.add_argument("--path", "-p", dest="path")
+
+    return parser.parse_args()
+
 
 def decode_json(command) -> str:
     """[summary]
@@ -48,6 +65,9 @@ def main() -> None:
     """[summary]
     Main function
     """
+    
+    # Init parser arguments
+    args = init_parser() 
     
     # Set command to execute
     command = "az appservice plan list --query [].name"
