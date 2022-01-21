@@ -2,7 +2,7 @@ import subprocess
 import shlex
 from io import StringIO
 import json
-from ftplib import FTP
+from ftplib import FTP, FTP_TLS, error_perm
 import argparse
 
 def init_parser() -> argparse.ArgumentParser:
@@ -11,12 +11,19 @@ def init_parser() -> argparse.ArgumentParser:
                                     Take zip file and upload on app service on defined path.
                                 """)
     azure = parser.add_argument_group("azure options")
-    azure.add_argument("--resource-group", '-g', dest="group")
-    azure.add_argument("--subscription", '-s', dest="subscription")
+    azure.add_argument("--resource-group", '-g', 
+                       dest="group")
+    azure.add_argument("--subscription", '-s', 
+                       dest="subscription", 
+                       default="", 
+                       required=False)
     
     provision = parser.add_argument_group("provisioning options")
-    provision.add_argument("--zip", "-z", dest="zip")
-    provision.add_argument("--path", "-p", dest="path")
+    provision.add_argument("--zip", "-z", 
+                           dest="zip")
+    provision.add_argument("--path", "-p", 
+                           dest="path", 
+                           type=str)
 
     return parser.parse_args()
 
@@ -45,7 +52,7 @@ def decode_json(command) -> str:
     # Formato io data reader in JSON
     return json.load(io)
 
-def init_ftp(url) -> FTP:
+def init_ftp(url, ssl=False) -> FTP:
     """[summary]
 
     Generate FTP Connection
@@ -58,8 +65,19 @@ def init_ftp(url) -> FTP:
     """
     url = url.replace("ftp://", "")
     url = url.replace("/site/wwwroot", "")
-    print(url)
-    return FTP(url)
+    
+    if ssl:
+        try:
+            return FTP_TLS(url)
+        except Exception as error:
+            print("Cannot estabilish TLS connection: {0}"
+                  .format(error))
+    else:
+        try:
+            return FTP(url)
+        except Exception as error:
+            print("Cannot estabilish connection: {0}"
+                  .format(error))
 
 def main() -> None:
     """[summary]
@@ -81,16 +99,16 @@ def main() -> None:
     for app in j_appsrv:
         
         url = decode_json(
-                'az webapp deployment list-publishing-profiles --resource-group U87-PM-AppServices-pci-uat --name {0} --query "[1].publishUrl"'
-                .format(app)
+                'az webapp deployment list-publishing-profiles --resource-group {rg} {sub} --name {0} --query "[1].publishUrl"'
+                .format(app, rg=args.group, sub=args.subscription)
             )
         user = decode_json(
-                'az webapp deployment list-publishing-profiles --resource-group U87-PM-AppServices-pci-uat --name {0} --query "[1].userName"'
-                .format(app)
+                'az webapp deployment list-publishing-profiles --resource-group {rg} {sub} --name {0} --query "[1].userName"'
+                .format(app, rg=args.group, sub=args.subscription)
             )
         passwd = decode_json(
-                'az webapp deployment list-publishing-profiles --resource-group U87-PM-AppServices-pci-uat --name {0} --query "[1].userPWD"'
-                .format(app)
+                'az webapp deployment list-publishing-profiles --resource-group {rg} {sub} --name {0} --query "[1].userPWD"'
+                .format(app, rg=args.group, sub=args.subscription)
             )
         
         print("App service [{app}] connection url [{conn}] : \n{user}\n{passwd}\n".format(
@@ -101,11 +119,26 @@ def main() -> None:
             )
         )
         
-    ftp = init_ftp(url)
-    ftp.login(user=user, passwd=passwd)
-    print(ftp.retrlines("LIST"))
+    conn = init_ftp(url, ssl=True)
+    conn.login(user=user, passwd=passwd)
     
+    # Set data protection to private
+    if conn.context.protocol.PROTOCOL_TLS.name == 'PROTOCOL_TLS':
+        conn.prot_p()
+        print("Set %s" % (conn.context.protocol.PROTOCOL_TLS.name))
     
+    print(conn.retrlines("LIST"))
+    
+    # Case selector
+    if args.path:
+        try:
+            print(conn.retrlines("LIST %s" % (args.path)))
+        except error_perm as e_perm:
+            conn.mkd(args.path)
+            print("Failed to retrive path on app service, please select anthor destination: {e}"
+                  .format(e=e_perm))
+    
+    conn.close()
 
 if __name__ == "__main__":
     main()
