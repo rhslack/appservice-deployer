@@ -1,7 +1,7 @@
 [project]
-name = "appservice-deployer"
+name = "azure-appservice-deployer"
 version = "v0.0.1"
-description = ""
+description = "Azure App Service file deployer"
 authors = [
     {name = "Fabio Felici", email = "fabio.felici96c@gmail.com"},
 ]
