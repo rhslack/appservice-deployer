@@ -146,7 +146,7 @@ def main() -> None:
     # Print app service list 
     logger.info("App service plan list")
     for plan in j:
-        logger.info("Found plan: {0}".format(plan[0]))
+        logger.info("Found plan: {0}".format(plan))
 
     if args.DRY_RUN:
         logger.info("Will deploy in {0}"
@@ -155,6 +155,7 @@ def main() -> None:
     
     for app in j_appsrv:
         app = app[0] 
+        
         # Create App Logger 
         logger = create_logger(
             app_name=app,
