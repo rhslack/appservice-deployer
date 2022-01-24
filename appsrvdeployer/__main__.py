@@ -7,17 +7,28 @@ from datetime import datetime
 from appsrvdeployer.modules.logger import *
 from appsrvdeployer.modules.utils import *
 from appsrvdeployer.modules.ftp import *
+import textwrap
 
 
 def init_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="""
+    parser = argparse.ArgumentParser(description=textwrap.dedent("""
                                     Provisioning config file to app service.                                    
                                     Take zip file and upload on app service on defined path.
-                                """,
-                                prog="appsrvdeployer")
+                                """),
+                                formatter_class=argparse.RawDescriptionHelpFormatter,
+                                prog="appsrvdeployer",
+                                epilog=textwrap.dedent('''\
+                                It's recommended to make dry run before run provisioning 
+                                to see what\'s app are selected for deployments\n
+                                '''))
+
     azure = parser.add_argument_group("azure options")
+    azure.add_argument("-n", "--app-service-name",
+                       dest="appsrv_name", default="",
+                       help="App service name or like, to deploy into filtered app services")    
     azure.add_argument("--resource-group", '-g', 
-                       dest="group")
+                       dest="group",
+                       default="")
     azure.add_argument("--subscription", '-s', 
                        dest="subscription", 
                        default="", 
@@ -26,11 +37,15 @@ def init_parser() -> argparse.ArgumentParser:
     provision = parser.add_argument_group("provisioning options")
     provision.add_argument("--zip", "-z", 
                            dest="zip",
-                           required=True)
+                           required=True)    
     provision.add_argument("--path", "-p", 
                            dest="path", 
                            type=str,
                            required=True)
+    provision.add_argument("--dry-run", "-C", 
+                           dest="DRY_RUN",
+                           default=False,
+                           action="store_true")
 
     return parser.parse_args()
 
@@ -87,6 +102,14 @@ def main() -> None:
     # Init parser arguments
     args = init_parser() 
     
+    # Parsing subscription
+    if args.subscription != "":
+        args.subscription = "--subscription "+ args.subscription
+        
+    # Parsing resource group
+    if args.group != "":
+        args.group = "--resource-group "+ args.group 
+    
     # Init temporary dir to storage zip file
     dirpath = TemporaryDirectory(
             prefix="appsrvdeployer-", 
@@ -94,18 +117,44 @@ def main() -> None:
         ) 
     
     # Set command to execute
-    command = "az appservice plan list --query [].name"
+    if args.appsrv_name:
+        j = decode_json('az appservice plan list --query "[?contains(name, \'{0}\')].[name]" \
+                        {rg} {sub}'
+                        .format(args.appsrv_name,
+                                rg=args.group, 
+                                sub=args.subscription))
+    else:
+        j = decode_json("az appservice plan list --query [].name \
+                        {rg} {sub}"
+                        .format(rg=args.group, 
+                                sub=args.subscription))
+            
 
-    j = decode_json(command)
-    j_appsrv = decode_json('az webapp list --query "[].name"')
+    if args.appsrv_name:
+        j_appsrv = decode_json('az webapp list --query "[?contains(name, \'{0}\')].[name]" \
+                                {rg} {sub}'
+                               .format(args.appsrv_name,
+                                       rg=args.group, 
+                                       sub=args.subscription))  
+    else:
+        j_appsrv = decode_json('az webapp list --query "[].name" \
+            {rg} {sub}'
+            .format(rg=args.group, 
+                    sub=args.subscription))
+
     
     # Print app service list 
     logger.info("App service plan list")
     for plan in j:
-        logger.info("Found plan: {0}".format(plan))
+        logger.info("Found plan: {0}".format(plan[0]))
+
+    if args.DRY_RUN:
+        logger.info("Will deploy in {0}"
+                    .format(j_appsrv))
+        sys.exit(0)
     
     for app in j_appsrv:
-                    
+        app = app[0] 
         # Create App Logger 
         logger = create_logger(
             app_name=app,
@@ -119,15 +168,15 @@ def main() -> None:
         logger.info("Retrive information from {0}...".format(app))
         
         url = decode_json(
-                'az webapp deployment list-publishing-profiles --resource-group {rg} {sub} --name {0} --query "[1].publishUrl"'
+                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].publishUrl"'
                 .format(app, rg=args.group, sub=args.subscription)
             )
         user = decode_json(
-                'az webapp deployment list-publishing-profiles --resource-group {rg} {sub} --name {0} --query "[1].userName"'
+                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].userName"'
                 .format(app, rg=args.group, sub=args.subscription)
             )
         passwd = decode_json(
-                'az webapp deployment list-publishing-profiles --resource-group {rg} {sub} --name {0} --query "[1].userPWD"'
+                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].userPWD"'
                 .format(app, rg=args.group, sub=args.subscription)
             )
         

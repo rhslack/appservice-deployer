@@ -7,7 +7,7 @@ import shlex
 import subprocess
 import zipfile
 
-def decode_json(command) -> str:
+def decode_json(command) -> json:
     """[summary]
 
         Return Azure data in json decoded version
