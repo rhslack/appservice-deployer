@@ -123,6 +123,7 @@ def main() -> None:
                         .format(args.appsrv_name,
                                 rg=args.group, 
                                 sub=args.subscription))
+        j = j[0]
     else:
         j = decode_json("az appservice plan list --query [].name \
                         {rg} {sub}"
@@ -136,6 +137,7 @@ def main() -> None:
                                .format(args.appsrv_name,
                                        rg=args.group, 
                                        sub=args.subscription))  
+        j_appsrv = j_appsrv[0] 
     else:
         j_appsrv = decode_json('az webapp list --query "[].name" \
             {rg} {sub}'
@@ -154,7 +156,6 @@ def main() -> None:
         sys.exit(0)
     
     for app in j_appsrv:
-        app = app[0] 
         
         # Create App Logger 
         logger = create_logger(
