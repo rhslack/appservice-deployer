@@ -1,6 +1,5 @@
-from cmath import log
-from ftplib import error_perm
 import argparse
+from cmath import log
 import sys
 from tempfile import TemporaryDirectory
 from datetime import datetime
@@ -9,6 +8,12 @@ from appsrvdeployer.modules.utils import *
 from appsrvdeployer.modules.ftp import *
 import textwrap
 from appsrvdeployer.modules.provisioning import provisioning
+from tempfile import mkstemp
+import atexit
+
+def exit_handler(logfile):
+    print("Can read log file at: {0}".format(logfile))
+
 
 def init_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=textwrap.dedent("""
@@ -46,6 +51,15 @@ def init_parser() -> argparse.ArgumentParser:
                            dest="DRY_RUN",
                            default=False,
                            action="store_true")
+    
+    utils = parser.add_argument_group("utils")
+    utils.add_argument(
+        "--log",
+        dest="logfile",
+        type=str,
+        default=mkstemp(prefix="logger-", suffix=".log"),
+        help="Set log file location."
+    )
 
     return parser.parse_args()
 
@@ -54,18 +68,22 @@ def main() -> None:
     Main function
     """
 
+    # Init parser arguments
+    args = init_parser() 
+    
+    # Register exit handler
+    atexit.register(exit_handler, args.logfile)
+
     # Create App Logger 
     logger = create_logger(
         app_name="appsrvdeployer",
         log_level=os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
             if os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
             else logging.INFO,
+        logfile=args.log,
         stdout=True,
         file=True
     )
-    
-    # Init parser arguments
-    args = init_parser() 
     
     # Parsing subscription
     if args.subscription != "":
@@ -126,7 +144,8 @@ def main() -> None:
         args.subscription,
         args.path,
         args.zip,
-        dirpath
+        dirpath,
+        args.log
     )
 
 if __name__ == "__main__":

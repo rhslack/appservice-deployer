@@ -48,7 +48,8 @@ def provisioning(
         subscription, 
         path, 
         zip,
-        dirpath
+        dirpath,
+        logfile
     ):
     
     for app in j_appsrv:
@@ -59,6 +60,7 @@ def provisioning(
             log_level=os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
                 if os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
                 else logging.INFO,
+            logfile=logfile,
             stdout=True,
             file=True
         )

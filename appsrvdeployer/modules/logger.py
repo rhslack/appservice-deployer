@@ -1,7 +1,15 @@
 import logging
 import logging.handlers
+from tempfile import mkstemp
 
-def create_logger(app_name, log_level=logging.DEBUG, logfile='/tmp/logger.log', address="", stdout=True, syslog=False, file=False):
+def create_logger(
+    app_name, 
+    log_level=logging.DEBUG, 
+    logfile=mkstemp(prefix="logger-", suffix=".log"), 
+    address="", 
+    stdout=True, 
+    syslog=False, 
+    file=False):
     """
     create logging object with logging to syslog, file and stdout
     :param logfile log file
@@ -42,5 +50,4 @@ def create_logger(app_name, log_level=logging.DEBUG, logfile='/tmp/logger.log', 
         ch.setLevel(log_level)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
-
     return logger
