@@ -107,7 +107,10 @@ def main() -> None:
                         .format(args.appsrv_name,
                                 rg=args.group, 
                                 sub=args.subscription))
-        j = j[0]
+        try:                        
+            j = j[0]
+        except Exception:
+            pass
     else:
         j = decode_json("az appservice plan list --query [].name \
                         {rg} {sub}"
