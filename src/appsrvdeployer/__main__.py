@@ -1,5 +1,6 @@
 import argparse
 from cmath import log
+from email.policy import default
 import sys
 from tempfile import TemporaryDirectory
 from datetime import datetime
@@ -57,7 +58,7 @@ def init_parser() -> argparse.ArgumentParser:
         "--log",
         dest="logfile",
         type=str,
-        default=mkstemp(prefix="logger-", suffix=".log"),
+        default=mkstemp(prefix="logger-appsrvdeployer-", suffix=".log")[1],
         help="Set log file location."
     )
 
@@ -80,7 +81,7 @@ def main() -> None:
         log_level=os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
             if os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
             else logging.INFO,
-        logfile=args.log,
+        logfile=args.logfile,
         stdout=True,
         file=True
     )
