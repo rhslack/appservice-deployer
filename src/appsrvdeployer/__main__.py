@@ -149,7 +149,7 @@ def main() -> None:
         args.path,
         args.zip,
         dirpath,
-        args.log
+        args.logfile
     )
 
 if __name__ == "__main__":
