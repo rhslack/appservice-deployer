@@ -15,11 +15,15 @@ setup_kwargs = {
     'author_email': 'Fabio Felici <fabio.felici96c@gmail.com>',
     'maintainer': 'Fabio Felici',
     'maintainer_email': 'Fabio Felici <fabio.felici96c@gmail.com>',
-    'url': 'https://github.com/rhslack/appservice-deployer',
+    'url': '',
     'packages': [
         'appsrvdeployer',
         'appsrvdeployer.modules',
     ],
+    "project_urls": {
+        "homepage": "https://github.com/rhslack/appservice-deployer",
+        "Bug Tracker": "https://github.com/rhslack/appservice-deployer/issues",
+    },
     "classifiers": [
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

@@ -1,5 +1,5 @@
 [project]
-name = "azure-appservice-deployer"
+name = "appservice-deployer"
 version = "v0.0.1"
 description = "Azure App Service file deployer"
 authors = [
@@ -10,11 +10,12 @@ requires-python = ">=3.8"
 license = {text = "MIT"}
 
 [project.urls]
-homepage = ""
+"homepage" = "https://github.com/rhslack/appservice-deployer"
+"Bug Tracker" = "https://github.com/rhslack/appservice-deployer/issues"
 
 [tool]
 [tool.pdm]
 
 [build-system]
 requires = ["pdm-pep517"]
-build-backend = "pdm.pep517.api"
+build-backend = "pdm.pep517.api" 
