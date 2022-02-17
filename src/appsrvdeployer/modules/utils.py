@@ -1,8 +1,8 @@
+from datetime import datetime
+from tempfile import TemporaryDirectory
 from typing import List
-from ftplib import error_perm
 from io import StringIO
 import json
-import os
 import shlex
 import subprocess
 import zipfile
@@ -64,3 +64,15 @@ def listZipFiles(path, zip) -> List:
             filelist.append(path+names)
         zip_file.close() 
         return filelist
+
+def mkdtempdir() -> str:
+    """[summary]
+
+        Make temporary dir
+    
+    return: TemporaryDirectory
+    """
+    return TemporaryDirectory(
+            prefix="appsrvdeployer-", 
+            suffix=datetime.today().strftime('-%Y%m%d%H%M')
+        ).name

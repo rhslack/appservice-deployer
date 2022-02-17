@@ -1,12 +1,8 @@
 import argparse
-from cmath import log
-from email.policy import default
 import sys
-from tempfile import TemporaryDirectory
 import os
-from datetime import datetime
 from appsrvdeployer.modules.logger import *
-from appsrvdeployer.modules.utils import listZipFiles, decode_json
+from appsrvdeployer.modules.utils import listZipFiles, decode_json, mkdtempdir
 from appsrvdeployer.modules.ftp import *
 import textwrap
 from appsrvdeployer.modules.provisioning import provisioning
@@ -94,13 +90,7 @@ def main() -> None:
     # Parsing resource group
     if args.group != "":
         args.group = "--resource-group "+ args.group 
-    
-    # Init temporary dir to storage zip file
-    dirpath = TemporaryDirectory(
-            prefix="appsrvdeployer-", 
-            suffix=datetime.today().strftime('-%Y%m%d%H%M')
-        ) 
-    
+       
     # Set command to execute
     if args.appsrv_name:
         j = decode_json('az appservice plan list --query "[?contains(name, \'{0}\')].[name]" \
@@ -141,7 +131,7 @@ def main() -> None:
         logger.info("Will deploy in {0}"
                     .format(j_appsrv))
 
-        for f in listZipFiles(dirpath.name, args.zip):
+        for f in listZipFiles(mkdtempdir(), args.zip):
             logger.info("Will upload this: {0}".format(f))
 
         sys.exit(0)
@@ -152,7 +142,6 @@ def main() -> None:
         args.subscription,
         args.path,
         args.zip,
-        dirpath,
         args.logfile
     )
 

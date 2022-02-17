@@ -2,7 +2,7 @@ from ftplib import error_perm
 import sys
 from appsrvdeployer.modules.ftp import init_ftp
 from appsrvdeployer.modules.logger import *
-from appsrvdeployer.modules.utils import decode_json, unzipFiles
+from appsrvdeployer.modules.utils import decode_json, mkdtempdir, unzipFiles
 import os
 
 
@@ -48,12 +48,14 @@ def provisioning(
         subscription, 
         path, 
         zip,
-        dirpath,
         logfile
     ):
     
     for app in j_appsrv:
-        
+
+        if len(app) == 1:
+            app = app[0]
+
         # Create App Logger 
         logger = create_logger(
             app_name=app,
@@ -111,15 +113,18 @@ def provisioning(
                     conn.mkd(path)
                 else:
                     sys.exit(550)
-                    
+
+        # Create temporary dir 
+        dirpath = mkdtempdir()
+
         if zip:
             try:
-                exctdir = unzipFiles(dirpath.name, zip)
+                exctdir = unzipFiles(dirpath, zip)
             except Exception as e:
                 logger.error("Error while unzip files: {e}".format(e=e))
                 
             try: 
-                uploadFiles(conn, dirpath.name + "/" + exctdir, logger, location=path)
+                uploadFiles(conn, dirpath + "/" + exctdir, logger, location=path)
             except Exception as e:
                 logger.error("Error while upload files: {e}".format(e=e))
             
