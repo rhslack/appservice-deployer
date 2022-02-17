@@ -47,3 +47,20 @@ def unzipFiles(path, zip) -> List:
         zip_file.close() 
         return zip_file.namelist()[0]
 
+
+def listZipFiles(path, zip) -> List:
+    """[summary]
+
+        List zip file on defined path and return exctract file location
+
+    Args:
+        path (str): Path where zip file will be stored
+    """
+    if zip.endswith('.zip'):
+        filelist = []
+        filePath=zip
+        zip_file = zipfile.ZipFile(filePath)
+        for names in zip_file.namelist():
+            filelist.append(path+names)
+        zip_file.close() 
+        return filelist

@@ -3,9 +3,10 @@ from cmath import log
 from email.policy import default
 import sys
 from tempfile import TemporaryDirectory
+import os
 from datetime import datetime
 from appsrvdeployer.modules.logger import *
-from appsrvdeployer.modules.utils import *
+from appsrvdeployer.modules.utils import listZipFiles, decode_json
 from appsrvdeployer.modules.ftp import *
 import textwrap
 from appsrvdeployer.modules.provisioning import provisioning
@@ -107,10 +108,8 @@ def main() -> None:
                         .format(args.appsrv_name,
                                 rg=args.group, 
                                 sub=args.subscription))
-        try:                        
+        if len(j) == 1:
             j = j[0]
-        except Exception:
-            pass
     else:
         j = decode_json("az appservice plan list --query [].name \
                         {rg} {sub}"
@@ -124,7 +123,8 @@ def main() -> None:
                                .format(args.appsrv_name,
                                        rg=args.group, 
                                        sub=args.subscription))  
-        j_appsrv = j_appsrv[0] 
+        if len(j_appsrv) == 1:
+            j_appsrv = j_appsrv[0] 
     else:
         j_appsrv = decode_json('az webapp list --query "[].name" \
             {rg} {sub}'
@@ -140,6 +140,10 @@ def main() -> None:
     if args.DRY_RUN:
         logger.info("Will deploy in {0}"
                     .format(j_appsrv))
+
+        for f in listZipFiles(dirpath.name, args.zip):
+            logger.info("Will upload this: {0}".format(f))
+
         sys.exit(0)
     
     provisioning(
