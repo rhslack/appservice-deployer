@@ -1,4 +1,4 @@
-# Azure App service deploye
+# Azure App service deployer
  
 ### Simple azure app service file provisioner
 
