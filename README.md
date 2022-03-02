@@ -24,7 +24,7 @@ pip install appservice-deployer
 
 ## Usage
 
-The basic utility fo this program at now is to provision static file on app service, it's automatically retrive information on *FTPS* connection *USER* and *PASSWORD* of one or more app services.
+The basic utility for this program at now is to provision static file on app service, it's automatically retrive information on *FTPS* connection *USER* and *PASSWORD* of one or more app services.
 
 It's recommended to make dry run before run provisioning to see every changes that the run will be affect and what app are involved.
 
