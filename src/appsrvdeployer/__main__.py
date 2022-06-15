@@ -28,7 +28,11 @@ def init_parser() -> argparse.ArgumentParser:
     azure = parser.add_argument_group("azure options")
     azure.add_argument("-n", "--app-service-name",
                        dest="appsrv_name", default="",
-                       help="App service name or like, to deploy into filtered app services")    
+                       help="App service name or like, to deploy into filtered app services")
+    azure.add_argument("--slot",
+                       dest="slot", default=False,
+                       action="store_true",
+                       help="App service name or like, to deploy into filtered app services")   
     azure.add_argument("--resource-group", '-g', 
                        dest="group",
                        default="")
@@ -89,23 +93,7 @@ def main() -> None:
         
     # Parsing resource group
     if args.group != "":
-        args.group = "--resource-group "+ args.group 
-       
-    # Set command to execute
-    if args.appsrv_name:
-        j = decode_json('az appservice plan list --query "[?contains(name, \'{0}\')].[name]" \
-                        {rg} {sub}'
-                        .format(args.appsrv_name,
-                                rg=args.group, 
-                                sub=args.subscription))
-        if len(j) == 1:
-            j = j[0]
-    else:
-        j = decode_json("az appservice plan list --query [].name \
-                        {rg} {sub}"
-                        .format(rg=args.group, 
-                                sub=args.subscription))
-            
+        args.group = "--resource-group "+ args.group       
 
     if args.appsrv_name:
         j_appsrv = decode_json('az webapp list --query "[?contains(name, \'{0}\')].[name]" \
@@ -120,12 +108,6 @@ def main() -> None:
             {rg} {sub}'
             .format(rg=args.group, 
                     sub=args.subscription))
-
-    
-    # Print app service list 
-    logger.info("App service plan list")
-    for plan in j:
-        logger.info("Found plan: {0}".format(plan))
 
     if args.DRY_RUN:
         logger.info("Will deploy in {0}"
