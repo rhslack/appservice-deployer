@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 from tempfile import mkstemp
+from rich.logging import RichHandler
 
 def create_logger(
     app_name, 
@@ -27,7 +28,7 @@ def create_logger(
     logger.setLevel(log_level)
 
     # Imposto il format di default per il logging
-    formatter = logging.Formatter('[%(asctime)s][%(name)s][%(threadName)s] %(levelname)s: %(message)s')
+    formatter = logging.Formatter('[%(name)s] %(levelname)s: %(message)s')
 
     if file:
         # create file logger handler
@@ -46,7 +47,7 @@ def create_logger(
 
     if stdout:
         # create stream logger handler
-        ch = logging.StreamHandler()
+        ch = RichHandler()
         ch.setLevel(log_level)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
