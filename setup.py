@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup_kwargs = {
     'name': 'appservice-deployer',
-    'version': '0.0.3.3',
+    'version': '0.0.4',
     'description': 'Azure App Service file deployer',
     'long_description': long_description,
     'license': 'MIT',

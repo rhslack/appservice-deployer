@@ -1,4 +1,5 @@
 from ftplib import error_perm
+from shutil import rmtree
 import sys
 from appsrvdeployer.modules.ftp import init_ftp
 from appsrvdeployer.modules.logger import *
@@ -122,10 +123,15 @@ def provisioning(
                 exctdir = unzipFiles(dirpath, zip)
             except Exception as e:
                 logger.error("Error while unzip files: {e}".format(e=e))
+                rmtree(dirpath)
                 
             try: 
                 uploadFiles(conn, dirpath + "/" + exctdir, logger, location=path)
             except Exception as e:
                 logger.error("Error while upload files: {e}".format(e=e))
+                rmtree(dirpath)
+            finally:
+                logger.info("Upload completed!")
+                rmtree(dirpath)
             
         conn.close()
