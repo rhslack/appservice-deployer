@@ -49,7 +49,8 @@ def provisioning(
         subscription, 
         path, 
         zip,
-        logfile
+        logfile,
+        slot
     ):
     
     for app in j_appsrv:
@@ -69,20 +70,23 @@ def provisioning(
         )
         
         logger.info("Retrive information from {0}...".format(app))
+
+        # If slot is set write log to user
+        if slot != "":
+            logger.info("SLOT deployment set on \"{0}\"".format(slot.replace("--slot ", "").upper()))
         
         url = decode_json(
-                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].publishUrl"'
-                .format(app, rg=rg, sub=subscription)
+                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].publishUrl" {slot}'
+                .format(app, rg=rg, sub=subscription,slot=slot)
             )
         user = decode_json(
-                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].userName"'
-                .format(app, rg=rg, sub=subscription)
+                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].userName" {slot}'
+                .format(app, rg=rg, sub=subscription,slot=slot)
             )
         passwd = decode_json(
-                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].userPWD"'
-                .format(app, rg=rg, sub=subscription)
+                'az webapp deployment list-publishing-profiles {rg} {sub} --name {0} --query "[1].userPWD" {slot}'
+                .format(app, rg=rg, sub=subscription,slot=slot)
             )
-        
         logger.debug("App service [{app}] connection url [{conn}] : user: {user} pass: {passwd}".format(
                 app=app,
                 conn=url,

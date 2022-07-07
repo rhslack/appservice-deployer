@@ -30,8 +30,9 @@ def init_parser() -> argparse.ArgumentParser:
                        dest="appsrv_name", default="",
                        help="App service name or like, to deploy into filtered app services")
     azure.add_argument("--slot",
-                       dest="slot", default=False,
-                       action="store_true",
+                       dest="slot",
+                       required=False,
+                       default="",
                        help="App service name or like, to deploy into filtered app services")   
     azure.add_argument("--resource-group", '-g', 
                        dest="group",
@@ -81,7 +82,7 @@ def main() -> None:
         app_name="appsrvdeployer",
         log_level=os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
             if os.environ.get("APPSRVDEPLOYER_LOG_LEVEL") 
-            else logging.INFO,
+            else logging.DEBUG,
         logfile=args.logfile,
         stdout=True,
         file=True
@@ -93,14 +94,18 @@ def main() -> None:
         
     # Parsing resource group
     if args.group != "":
-        args.group = "--resource-group "+ args.group       
+        args.group = "--resource-group "+ args.group
+    
+    # Parsing slot release
+    if args.slot != "":
+        args.slot = "--slot "+ args.slot
 
     if args.appsrv_name:
         j_appsrv = decode_json('az webapp list --query "[?contains(name, \'{0}\')].[name]" \
                                 {rg} {sub}'
                                .format(args.appsrv_name,
                                        rg=args.group, 
-                                       sub=args.subscription))  
+                                       sub=args.subscription))
         if len(j_appsrv) == 1:
             j_appsrv = j_appsrv[0] 
     else:
@@ -124,7 +129,8 @@ def main() -> None:
         args.subscription,
         args.path,
         args.zip,
-        args.logfile
+        args.logfile,
+        args.slot
     )
 
 if __name__ == "__main__":

@@ -109,6 +109,16 @@ $ tree <ROOT_PATH>
         └── file7
 ```
 
+### 2. How i can deploy on my slot?
+You can deploy on specific app service slot with **--slot** *<SLOT_NAME>*
+
+Like this
+```bash
+python3 -m appsrvdeployer -n <APP_SERVER_NAME> -g <RESOURCE_GROUP> -s <SUBSCRIPTION> -z <ZIP_FILE> --path <ROOT_PATH> --slot <SLOT_NAME>
+```
+
+It will deploy **only** on your app service slot
+
 ## License
 
 This project is open sourced under MIT license, see the [LICENSE](LICENSE) file for more details.
